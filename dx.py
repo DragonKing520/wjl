@@ -22,7 +22,7 @@ config_list = [
 ]
 
 #--------------配置区结束------------#
-app_headers = {"User-Agent": "CtClient;9.6.1;Android;12;22011211C;NTg4MzM1!#!MTU1NTc"}
+app_headers = {"User-Agent": "Xiaomi MI 9/9.2.0"}
 msg_list = []
 host = 'http://120.79.66.8:6987'
 
