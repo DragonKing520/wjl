@@ -4,7 +4,7 @@
 由于token时效太短 改成密码登录
 
 正汉DR
-注册地址    https://raw.githubusercontent.com/liuqi6968/-/main/mmexport646bbce1fec5339a655030cb18cabf0f_1669206408421.png
+注册地址    https://gitee.com/yuwenhaoo/tele-webs/raw/main/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20221207130824.jpg
 cron: 13 3,13,23 * * *
 ------------------------  青龙--配置文件-贴心复制区域  ---------------------- 
 变量 zh    手机号#密码  多账号@或者分行
