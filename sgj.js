@@ -1,8 +1,9 @@
 /**
  * 拾光家
  * cron 10 10 * * *  sgj.js
- *
+ * 注册码133980
  * 22/12/7   每日答题1块钱低保
+ * 
  * ========= 青龙--配置文件 ===========
  * # 项目名称
  * export sgj_data='token&c-shebei-id&jm-token&jm-deviceid'
