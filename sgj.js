@@ -1,6 +1,6 @@
 /**
  * 拾光家 app https://www.shiguangjia.cn , 内测拾光码:133980
- * cron 10 10,11 * * *  sgj.js
+ * cron 10 10 * * *  sgj.js
  *
  * 22/12/7   每日答题1块钱低保
  * 22/12/8   请在执行前手动完成所有的剩余任务 一天运行10次
@@ -8,11 +8,13 @@
  * # 项目名称
  * export sgj_data='token'
  * 
-  * 多账号用 换行 或 @ 分割
+ * 多账号用 换行 或 @ 分割
  * 抓包 api.shiguangjia.cn/api中
- * headers 中 token
+ * headers 中 token 需要自动提现请填写 c-shebei-id 用&连接
  * ====================================
+ *   
  */
+
 
 
 const $ = new Env("拾光家");
@@ -40,24 +42,31 @@ async function start() {
     //    async get_recoord(name) { // 进入答题
     //    async get_qlist(name) { // 获取答题列表
     //    async sub_papers(name) { // 提交答案
-    console.log('\n更新：题库内没有就会重新获取题库,直到所有的题目都在题库内才会答题');
-    console.log('\n');
-    console.log('\n请先完成进行中的拾光!！这个报错是因为你那边积攒的未完成的太多了!\n');
-    console.log('\n达到完成次数上限!！ 这个报错是因为这条任务你已经上限了,可以多运行几次\n');
+    console.log('\n更新：题库内没有就会重新获取题库,直到所有的题目都在题库内才会答题,建议一天跑12次,一小时一次');
+    console.log('\n如果一直出现循环10次以上,那么您就手动做一下,可能答案真的不全,\n然后把答案和日志截图发我QQ860562056就行.主要是题目ID题目和答案这三个,在此感谢你');
+    console.log('\n如果一直出现循环10次以上,那么您就手动做一下,可能答案真的不全,\n然后把答案和日志截图发我QQ860562056就行.主要是题目ID题目和答案这三个,在此感谢你');
+    console.log('\n请先完成进行中的拾光!！这个报错是因为你那边积攒的未完成的太多了!');
+    console.log('\n达到完成次数上限!！ 这个报错是因为这条任务你已经上限了,可以多运行几次');
     console.log('\n================== 开始获取答题 ==================\n');
+    //console.log(this.shebei_id);
     taskall = [];
     for (let user of userList) {
         taskall.push(await user.task_accept('开始获取答题'));
         await wait(15); //延迟
     }
     await Promise.all(taskall);
-    console.log('\n================== 开始提现 ==================\n');
-    taskall = [];
-    for (let user of userList) {
-        taskall.push(await user.tx_check());
-        await wait(15); //延迟
+    if (this.shebei_id !== undefined) {
+        console.log('\n================== 开始提现 ==================\n');
+        taskall = [];
+        for (let user of userList) {
+            taskall.push(await user.tx_check());
+            await wait(15); //延迟
+        }
+        await Promise.all(taskall);
+    } else {
+        console.log("未填写c-shebei-id,不执行自动提现");
     }
-    await Promise.all(taskall);
+
 
 
 
@@ -73,8 +82,8 @@ class UserInfo {
         this.token = str.split('&')[0]
         //this.cookie = str.split('&')[1]
         this.shebei_id = str.split('&')[1]
-        this.jm_token = str.split('&')[2]
-        this.jm_deviceid = str.split('&')[3]
+        //this.jm_token = str.split('&')[2]
+        //this.jm_deviceid = str.split('&')[3]
         this.host = "echo.apipost.cn";
         this.hostname = "https://" + this.host;
         this.ts = utils.ts13()
@@ -430,8 +439,9 @@ class UserInfo {
                     console.log(options.body.papers);
                 }
             } else {
-                console.log("题库中没有这道题呢现在为你重新答题延迟30s");
-                await wait(30);
+                console.log("题库中没有这道题呢现在为你重新答题延迟15s");
+                console.log('\n如果一直出现循环10次以上,那么您就手动做一下,可能答案真的不全,\n然后把答案和日志截图发我QQ860562056就行.主要是题目ID题目和答案这三个,在此感谢你');
+                await wait(15);
                 await this.get_qlist(r4)
             }
         } catch (error) {
