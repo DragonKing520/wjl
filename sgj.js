@@ -3,17 +3,15 @@
  * cron 10 10,11 * * *  sgj.js
  *
  * 22/12/7   每日答题1块钱低保
+ * 22/12/8   请在执行前手动完成所有的剩余任务 一天运行10次
  * ========= 青龙--配置文件 ===========
  * # 项目名称
- * export sgj_data='token&c-shebei-id&jm-token&jm-deviceid'
+ * export sgj_data='token'
  * 
- * 多账号用 换行 或 @ 分割
+  * 多账号用 换行 或 @ 分割
  * 抓包 api.shiguangjia.cn/api中
- * headers 中 token和c-shebei-id
- * 还有https://ws.shiguangjia.cn:8086/中
- * headers 的jm-token和jm-deviceid 用&连接 共四个变量 按顺序来 只要值
+ * headers 中 token
  * ====================================
- *   
  */
 
 
@@ -43,13 +41,21 @@ async function start() {
     //    async get_recoord(name) { // 进入答题
     //    async get_qlist(name) { // 获取答题列表
     //    async sub_papers(name) { // 提交答案
-
+    console.log('\n更新：题库内没有就会重新获取题库,直到所有的题目都在题库内才会答题');
+    console.log('\n');
+    console.log('\n请先完成进行中的拾光!！这个报错是因为你那边积攒的未完成的太多了!\n');
+    console.log('\n达到完成次数上限!！ 这个报错是因为这条任务你已经上限了,可以多运行几次\n');
     console.log('\n================== 开始获取答题 ==================\n');
     taskall = [];
     for (let user of userList) {
-        for (let i = 0; i < 5; i++) { 
-            taskall.push(await user.official_event('开始获取答题')); 
-        }
+        taskall.push(await user.task_accept('开始获取答题'));
+        await wait(15); //延迟
+    }
+    await Promise.all(taskall);
+    console.log('\n================== 开始提现 ==================\n');
+    taskall = [];
+    for (let user of userList) {
+        taskall.push(await user.tx_check());
         await wait(15); //延迟
     }
     await Promise.all(taskall);
@@ -74,94 +80,121 @@ class UserInfo {
         this.hostname = "https://" + this.host;
         this.ts = utils.ts13()
         this.sign = utils.MD5_Encrypt("4044dd5f9031ba15a74a980c8cfbd74474b5dadf" + this.jm_deviceid + "android" + "215" + this.ts + "d75972c1a418f5acb4a4445acba394eccf863fbe")
-
-
+        this.y = utils.local_year()
+        this.m = utils.local_month_two() + 1
+        this.d = utils.local_day_two()
+        this.random = utils.randomszxx(10)
+        this.pushid = "push" + this.y + this.m.toString() + this.d + this.random
+        this.randomNum = utils.randomInt(0, 41)
     }
 
-
-    async official_event(name) { // 发送消息获取答题
-        try {
-            let options = {
-                method: 'POST',
-                url: 'https://api.shiguangjia.cn/api/comm/official_event',
-                headers: {
-                    Host: 'api.shiguangjia.cn',
-                    'c-model': 'android',
-                    'c-type': 'app',
-                    'c-shebei-id': this.shebei_id,
-                    'c-versioncode': '215',
-                    'c-app-channel': 'official',
-                    'c-shebei-info': '{"product":"platina","version_type":"user","display":"QKQ1.190910.002 test-keys","push_qx":"1","sdk_int":"29","manufacturer":"Xiaomi","hardward":"qcom","system":"Android 10","build_id":"QKQ1.190910.002","device_resolution":"1080x2154","bootloader":"unknown","fingerprint":"Xiaomi/platina/platina:10/QKQ1.190910.002/V12.0.1.0.QDTCNXM:user/release-keys","model":"MI 8 Lite","lang":"zh","device":"platina","brand":"Xiaomi","board":"sdm660"}',
-                    token: this.token,
-                    'c-version': '2.1.2',
-                    'content-type': 'application/x-www-form-urlencoded',
-                    //cookie: this.cookie,
-                    'user-agent': 'okhttp/4.7.2'
-                },
-                form: { sg_code: '53', event: 'pull_mrsg' }
-            };
-            //console.log(options);
-            let result = await httpRequest(options, name);
-            //console.log(result);
-            if (result.code == 1) {
-                DoubleLog(`账号[${this.index}]  获取答题任务成功: ${result.msg}`);
-                await wait(5)
-                await this.chatuser_list("获取消息列表")
-            } else {
-                DoubleLog(`账号[${this.index}]  获取答题任务:失败 ❌ 了呢,原因未知！`);
-                console.log(result);
+    /** 
+        async official_event(name) { // 发送消息获取答题
+            try {
+                let options = {
+                    method: 'POST',
+                    url: 'https://api.shiguangjia.cn/api/comm/official_event',
+                    headers: {
+                        Host: 'api.shiguangjia.cn',
+                        'c-model': 'android',
+                        'c-type': 'app',
+                        'c-shebei-id': this.shebei_id,
+                        'c-versioncode': '215',
+                        'c-app-channel': 'official',
+                        'c-shebei-info': '{"product":"platina","version_type":"user","display":"QKQ1.190910.002 test-keys","push_qx":"1","sdk_int":"29","manufacturer":"Xiaomi","hardward":"qcom","system":"Android 10","build_id":"QKQ1.190910.002","device_resolution":"1080x2154","bootloader":"unknown","fingerprint":"Xiaomi/platina/platina:10/QKQ1.190910.002/V12.0.1.0.QDTCNXM:user/release-keys","model":"MI 8 Lite","lang":"zh","device":"platina","brand":"Xiaomi","board":"sdm660"}',
+                        token: this.token,
+                        'c-version': '2.1.2',
+                        'content-type': 'application/x-www-form-urlencoded',
+                        //cookie: this.cookie,
+                        'user-agent': 'okhttp/4.7.2'
+                    },
+                    form: { sg_code: '53', event: 'pull_mrsg' }
+                };
+                //console.log(options);
+                let result = await httpRequest(options, name);
+                //console.log(result);
+                if (result.code == 1) {
+                    DoubleLog(`账号[${this.index}]  获取答题任务成功: ${result.msg}`);
+                    await wait(5)
+                    await this.chatuser_list("获取消息列表")
+                } else {
+                    DoubleLog(`账号[${this.index}]  获取答题任务:失败 ❌ 了呢,原因未知！`);
+                    console.log(result);
+                }
+            } catch (error) {
+                console.log(error);
             }
-        } catch (error) {
-            console.log(error);
         }
-    }
-
-    async chatuser_list(name) { // 获取消息列表
+    
+        async chatuser_list(name) { // 获取消息列表
+            try {
+                let options = {
+                    method: 'GET',
+                    url: 'https://ws.shiguangjia.cn:8086/user_im/chatuser_list',
+                    qs: { offset: '0', length: '1000' },
+                    headers: {
+                        'jm-devicetype': 'android',
+                        'jm-verifymd5': this.sign,
+                        'jm-deviceid': this.jm_deviceid,
+                        'jm-versioncode': '215',
+                        'jm-appid': '4044dd5f9031ba15a74a980c8cfbd74474b5dadf',
+                        'jm-signtime': this.ts,
+                        'jm-token': this.jm_token,
+                        'user-agent': 'okhttp/4.7.2'
+                    }
+                };
+                //console.log(options);
+                let result = await httpRequest(options, name);
+                //console.log(result);
+                if (result.code == 1) {
+                    DoubleLog(`账号[${this.index}]  获取答题任务信息: ${result.msg}`);
+                    for (let i in result.data.list) {
+                        if (result.data.list[i]._name == "每日拾光") {
+                            console.log(`任务信息: ${result.data.list[i].last_msg.nr.data.h.t}&${result.data.list[4].last_msg.nr.data.h.st}`);
+                            console.log(`任务链接获取成功 : ${result.data.list[i].last_msg.nr.data.url}`);
+                            let r1 = result.data.list[4].last_msg.nr.data.url.replace("shiguangjia:\/\/sgj.cn\/uniapp\/__UNI__C6B64AE\/pages\/task\/taskDetail?", "")
+                            //rw_id=168&pk=push20221207111239J9adIUVB6v
+                            let r2 = r1.slice(6, 9)
+                            let r3 = r1.slice(13)
+                            await wait(3)
+                            await this.task_accept(r2, r3)
+                        }
+    
+                    }
+    
+                } else {
+                    DoubleLog(`账号[${this.index}]  获取答题任务:失败 ❌ 了呢,原因未知！`);
+                    console.log(result);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    **/
+    async api() { // 获取远程题库
         try {
             let options = {
                 method: 'GET',
-                url: 'https://ws.shiguangjia.cn:8086/user_im/chatuser_list',
-                qs: { offset: '0', length: '1000' },
-                headers: {
-                    'jm-devicetype': 'android',
-                    'jm-verifymd5': this.sign,
-                    'jm-deviceid': this.jm_deviceid,
-                    'jm-versioncode': '215',
-                    'jm-appid': '4044dd5f9031ba15a74a980c8cfbd74474b5dadf',
-                    'jm-signtime': this.ts,
-                    'jm-token': this.jm_token,
-                    'user-agent': 'okhttp/4.7.2'
-                }
+                url: 'https://ghproxy.com/https://raw.githubusercontent.com/smallfawn/api/main/app/sgj.json',
             };
             //console.log(options);
-            let result = await httpRequest(options, name);
+            let result = await httpRequest(options, "获取远程题库");
             //console.log(result);
-            if (result.code == 1) {
-                DoubleLog(`账号[${this.index}]  获取答题任务信息: ${result.msg}`);
-                for (let i in result.data.list) {
-                    if (result.data.list[i]._name == "每日拾光") {
-                        console.log(`任务信息: ${result.data.list[i].last_msg.nr.data.h.t}&${result.data.list[4].last_msg.nr.data.h.st}`);
-                        console.log(`任务链接获取成功 : ${result.data.list[i].last_msg.nr.data.url}`);
-                        let r1 = result.data.list[4].last_msg.nr.data.url.replace("shiguangjia:\/\/sgj.cn\/uniapp\/__UNI__C6B64AE\/pages\/task\/taskDetail?", "")
-                        //rw_id=168&pk=push20221207111239J9adIUVB6v
-                        let r2 = r1.slice(6, 9)
-                        let r3 = r1.slice(13)
-                        await wait(3)
-                        await this.task_accept(r2, r3)
-                    }
-
-                }
-
-            } else {
-                DoubleLog(`账号[${this.index}]  获取答题任务:失败 ❌ 了呢,原因未知！`);
-                console.log(result);
+            if (result) {
+                let rr = result
+                //DoubleLog(`账号[${this.index}]  获取题目列表成功: ${result.msg}`);
+                return rr
             }
         } catch (error) {
             console.log(error);
         }
     }
+    async task_accept() { // 接受任务
+        let r2list = await this.api()
+        //console.log(r2list);
+        let r2 = r2list.tid[this.randomNum]
+        console.log("开始获取远程仓库任务" + r2);
 
-    async task_accept(r2, r3) { // 接受任务
         try {
             let options = {
                 method: 'POST',
@@ -178,14 +211,14 @@ class UserInfo {
                     //Cookie: this.cookie,
                     'content-type': 'application/json'
                 },
-                body: { rw_id: r2, pk: r3 },
+                body: { rw_id: r2, pk: this.pushid },
                 json: true
             };
             //console.log(options);
             let result = await httpRequest(options, "接受任务");
             //console.log(result);
             if (result.code == 1) {
-                DoubleLog(`账号[${this.index}]  接受答题任务成功: ${result.msg},${result.data.type}&${result.data.record_id}`);
+                DoubleLog(`账号[${this.index}]  接受答题任务成功: ${result.msg},${result.data.record_id}`);
                 await wait(3);
                 let r4 = result.data.record_id
                 await this.get_rw(r2, r4);
@@ -266,8 +299,8 @@ class UserInfo {
             if (result.code == 1) {
                 DoubleLog(`账号[${this.index}]  进入答题成功: ${result.msg}`);
                 console.log(`本次答题id为[${result.data.rw.id}&${result.data.rw.rw_id}]`)
-                console.log(`广告标题[${result.data.rw.name}],任务标题[${result.data.rw.short_name}]`)
-                console.log(`任务类型[${result.data.rw.tags_text}]&[${result.data.rw.type_text}],任务状况[${result.data.rw.status_text}]`);
+                console.log(`广告标题[${result.data.rw.name}]`)
+                //console.log(`任务类型[${result.data.rw.tags_text}]&[${result.data.rw.type_text}],任务状况[${result.data.rw.status_text}]`);
                 await wait(3)
                 await this.get_qlist(r4)
             } else {
@@ -280,8 +313,7 @@ class UserInfo {
     }
 
     async get_qlist(r4) { // 获取答题列表
-        let r0 = []
-        let l = []
+        let idArr = []
         try {
             let options = {
                 method: 'POST',
@@ -309,11 +341,14 @@ class UserInfo {
                 //console.log(`本次答题Key为[${result.data.key}]`)
                 let k = result.data.key
                 for (let i in result.data.question) {
-                    console.log(`题目[${i}],id[${result.data.question[i].id}],问题题目${result.data.question[i].question},该题目答案可能为${result.data.question[i].answer[0]}`);
-                    r0.push(result.data.question[i].answer[0])
+                    console.log(`题目[${i}],id[${result.data.question[i].id}],问题题目${result.data.question[i].question}`);
+                    let id = result.data.question[i].id
+                    await wait(1)
+                    idArr.push(id)
+                    await wait(2)
                 }
                 await wait(3)
-                await this.sub_papers(r4, k, r0)
+                await this.sub_papers(r4, k, idArr)
             } else {
                 DoubleLog(`账号[${this.index}]  获取题目列表:失败 ❌ 了呢,原因未知！`);
                 console.log(result);
@@ -323,55 +358,119 @@ class UserInfo {
         }
     }
 
-    async sub_papers(r4, k, r0) { // 提交答案
-
+    async sub_papers(r4, k, idArr) { // 提交答案
         try {
+            let rs = await this.api()
             function r(r00) {
                 if (r00.length == 3) {
-                    return [
-                        { qid: 0, answer: [r0[0]], error: false },
-                        { qid: 1, answer: [r0[1]], error: false },
-                        { qid: 2, answer: [r0[2]], error: false }
-                    ]
-                } else if (r0.length == 4) {
-                    return [
-                        { qid: 0, answer: [r0[0]], error: false },
-                        { qid: 1, answer: [r0[1]], error: false },
-                        { qid: 2, answer: [r0[2]], error: false },
-                        { qid: 3, answer: [r0[3]], error: false }
-                    ]
+                    let q0 = idArr[0]
+                    let q1 = idArr[1]
+                    let q2 = idArr[2]
+                    let ppp0 = rs.qid[q0]
+                    let ppp1 = rs.qid[q1]
+                    let ppp2 = rs.qid[q2]
+                    if (ppp0 !== undefined && ppp1 !== undefined && ppp2 !== undefined) {
+                        return [
+                            { qid: 0, answer: [ppp0], error: false },
+                            { qid: 1, answer: [ppp1], error: false },
+                            { qid: 2, answer: [ppp2], error: false }
+                        ]
+                    }
+                } else if (r00.length == 4) {
+                    let q0 = idArr[0]
+                    let q1 = idArr[1]
+                    let q2 = idArr[2]
+                    let q3 = idArr[3]
+                    let ppp0 = rs.qid[q0]
+                    let ppp1 = rs.qid[q1]
+                    let ppp2 = rs.qid[q2]
+                    let ppp3 = rs.qid[q3]
+                    if (ppp0 !== undefined && ppp1 !== undefined && ppp2 !== undefined && ppp3 !== undefined) {
+                        return [
+                            { qid: 0, answer: [ppp0], error: false },
+                            { qid: 1, answer: [ppp1], error: false },
+                            { qid: 2, answer: [ppp2], error: false },
+                            { qid: 3, answer: [ppp3], error: false }
+                        ]
+                    }
                 }
             }
-            let pp = r(r0)
+            let pp = r(idArr)
+            //console.log(pp);
+            if (pp !== undefined) {
+                let options = {
+                    method: 'POST',
+                    url: 'https://api.shiguangjia.cn/api/task/sub_papers',
+                    headers: {
+                        'C-model': 'android',
+                        'C-type': 'app-miniapp',
+                        'C-version': '2.7.7',
+                        token: this.token,
+                        'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/81.0.4044.138 Mobile Safari/537.36 uni-app Html5Plus/1.0 (Immersed/29.818182)',
+                        'Content-Type': 'application/json;charset=UTF-8',
+                        Host: 'api.shiguangjia.cn',
+                        Connection: 'Keep-Alive',
+                        //Cookie: this.cookie,
+                        'content-type': 'application/json'
+                    },
+                    body: {
+                        record_id: r4,
+                        key: k,
+                        papers: pp
+                    },
+                    json: true
+                };
+                //console.log(options);
+                let result = await httpRequest(options, "提交答案");
+                //console.log(result);
+                if (result.code == 1) {
+                    DoubleLog(`账号[${this.index}]  提交答案成功: ${result.msg}`);
+                } else {
+                    DoubleLog(`账号[${this.index}]  提交答案:失败 ❌ 了呢,原因未知！`);
+                    console.log(result);
+                    console.log(options.body.papers);
+                }
+            } else {
+                console.log("题库中没有这道题呢现在为你重新答题延迟30s");
+                await wait(30);
+                await this.get_qlist(r4)
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async tx_check() { // 提现检测
+        try {
             let options = {
                 method: 'POST',
-                url: 'https://api.shiguangjia.cn/api/task/sub_papers',
+                url: 'https://api.shiguangjia.cn/api/user/gz_tx_check',
                 headers: {
-                    'C-model': 'android',
-                    'C-type': 'app-miniapp',
-                    'C-version': '2.7.7',
-                    token: this.token,
-                    'user-agent': 'Mozilla/5.0 (Linux; Android 10; MI 8 Lite Build/QKQ1.190910.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/81.0.4044.138 Mobile Safari/537.36 uni-app Html5Plus/1.0 (Immersed/29.818182)',
-                    'Content-Type': 'application/json;charset=UTF-8',
                     Host: 'api.shiguangjia.cn',
-                    Connection: 'Keep-Alive',
-                    //Cookie: this.cookie,
-                    'content-type': 'application/json'
-                },
-                body: {
-                    record_id: r4,
-                    key: k,
-                    papers: pp
-                },
-                json: true
+                    'c-model': 'android',
+                    'c-type': 'app',
+                    'c-shebei-id': this.shebei_id,
+                    'c-versioncode': '215',
+                    'c-app-channel': 'official',
+                    'c-shebei-info': '{"product":"platina","version_type":"user","display":"QKQ1.190910.002 test-keys","push_qx":"1","sdk_int":"29","manufacturer":"Xiaomi","hardward":"qcom","system":"Android 10","build_id":"QKQ1.190910.002","device_resolution":"1080x2154","bootloader":"unknown","fingerprint":"Xiaomi/platina/platina:10/QKQ1.190910.002/V12.0.1.0.QDTCNXM:user/release-keys","model":"MI 8 Lite","lang":"zh","device":"platina","brand":"Xiaomi","board":"sdm660"}',
+                    token: this.token,
+                    'c-version': '2.1.2',
+                    //cookie: 'PHPSESSID=7c7tk2fplm01u3nv5oail8aj8v',
+                    'user-agent': 'okhttp/4.7.2'
+                }
             };
             //console.log(options);
-            let result = await httpRequest(options, "提交答案");
+            let result = await httpRequest(options, "检查是否可提现");
             //console.log(result);
             if (result.code == 1) {
-                DoubleLog(`账号[${this.index}]  提交答案成功: ${result.msg}`);
+                DoubleLog(`账号[${this.index}]  当前可以提现: ${result.msg},本次可提现[${result.data.money}]`);
+                await wait(5)
+                await this.tx_do()
+            } else if (result.code == -1) {
+                DoubleLog(`账号[${this.index}]  当前不可以提现,原因${result.msg}！`);
+            } else if (result.code == -2) {
+                DoubleLog(`账号[${this.index}]  当前不可以提现,原因${result.msg}！`);
             } else {
-                DoubleLog(`账号[${this.index}]  提交答案:失败 ❌ 了呢,原因未知！`);
                 console.log(result);
             }
         } catch (error) {
@@ -379,6 +478,40 @@ class UserInfo {
         }
     }
 
+    async tx_do() { // 提现
+        try {
+            let options = {
+                method: 'POST',
+                url: 'https://api.shiguangjia.cn/api/user/gz_tx',
+                headers: {
+                    Host: 'api.shiguangjia.cn',
+                    'c-model': 'android',
+                    'c-type': 'app',
+                    'c-shebei-id': this.shebei_id,
+                    'c-versioncode': '215',
+                    'c-app-channel': 'official',
+                    'c-shebei-info': '{"product":"platina","version_type":"user","display":"QKQ1.190910.002 test-keys","push_qx":"1","sdk_int":"29","manufacturer":"Xiaomi","hardward":"qcom","system":"Android 10","build_id":"QKQ1.190910.002","device_resolution":"1080x2154","bootloader":"unknown","fingerprint":"Xiaomi/platina/platina:10/QKQ1.190910.002/V12.0.1.0.QDTCNXM:user/release-keys","model":"MI 8 Lite","lang":"zh","device":"platina","brand":"Xiaomi","board":"sdm660"}',
+                    token: this.token,
+                    'c-version': '2.1.2',
+                    'content-type': 'application/x-www-form-urlencoded',
+                    //cookie: 'PHPSESSID=7c7tk2fplm01u3nv5oail8aj8v',
+                    'user-agent': 'okhttp/4.7.2'
+                },
+                form: { qz_wx: '0' }
+            };
+            //console.log(options);
+            let result = await httpRequest(options, "提现");
+            //console.log(result);
+            if (result.code == 1) {
+                DoubleLog(`账号[${this.index}]  提现成功: ${result.msg},当前提现[${result.data.money}]`);
+            } else {
+                DoubleLog(`账号[${this.index}]  提现失败,未知原因！`);
+                console.log(result);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
 }
 
@@ -419,7 +552,7 @@ async function httpRequest(options, name) { var request = require("request"); re
 // 等待 X 秒
 function wait(n) { return new Promise(function (resolve) { setTimeout(resolve, n * 1000) }) }
 // 双平台log输出
-function DoubleLog(data) { if ($.isNode()) { if (data) { console.log(`${data}`); msg += `${data}` } } else { console.log(`${data}`); msg += `${data}` } }
+function DoubleLog(data) { if ($.isNode()) { if (data) { console.log(`${data}`); msg += `\n${data}` } } else { console.log(`${data}`); msg += `\n${data}` } }
 // 发送消息
 async function SendMsg(message) { if (!message) return; if (Notify > 0) { if ($.isNode()) { var notify = require("./sendNotify"); await notify.sendNotify($.name, message) } else { $.msg($.name, '', message) } } else { console.log(message) } }
 // 完整 Env
