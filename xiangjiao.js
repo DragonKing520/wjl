@@ -7,7 +7,7 @@
  *  注册账户的邀请码必须填写 ：1113TMY
  *
  *  不然脚本非常容易失效，得经常换token_pin
- *  环境变量：xjsp      token=7D1A5D9327DA50FFA1D665D24D4F97909549D7FE@@xxx_api_auth=填写自己的 多账号加@@
+ *  环境变量：xjsp：token=7D1A5D9327DA50FFA1D665D24D4F97909549D7FE@@token_pin=ÜÑSø¢½V«z@@xxx_api_auth=填写自己的@@xxx_api_auth=填写自己的@@xxx_api_auth=填写自己的;
  *  
  * 规定定时：（这个5是秒数，随意即可！只是防止并发出现）5 1 22 * * *  一定要有1（分） 22（时），不然不能进行领取宝箱任务。
  *
