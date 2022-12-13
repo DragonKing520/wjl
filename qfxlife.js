@@ -1,5 +1,5 @@
 /*
-日期: 2022/12/11 20:57
+起飞线生活
 
 地址：
 复制链接浏览器打开：https://raw.githubusercontents.com/a65101855/zyk/3a7b196325de7b76122a47a46abc56d5a8a83e31/zqkdFast/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20221212090158.jpg
@@ -10,8 +10,15 @@
 查看请求头的x-ds-key
 变量格式：export qfxhd='' 多账号@隔开
 
+[task_local]
+#起飞线生活
+0 1-23/3 * * * 
+
+
+cron: 0 1-23/3 * * *
+const $ = new Env('起飞线生活');
 */
-// corn 0 */3 * * *
+
 
 const $ = new Env('起飞线生活');
 const axios = require('axios');
@@ -46,7 +53,6 @@ var timestamp = Math.round(new Date().getTime()).toString();
 
 
 
-            log(`\n============ 微信公众号：AutMan福利社 ============`)
             log(`\n=================== 共找到 ${qfxhdArr.length} 个账号 ===================`)
             if (debug) {
                 log(`【debug】 这是你的全部账号数组:\n ${qfxhdArr}`);
@@ -645,6 +651,10 @@ async function Envs() {
             });
         } else if (qfxhd.indexOf("\n") != -1) {
             qfxhd.split("\n").forEach((item) => {
+                qfxhdArr.push(item);
+            });
+        } else if (qfxhd.indexOf("&") != -1) {
+            qfxhd.split("&").forEach((item) => {
                 qfxhdArr.push(item);
             });
         } else {
