@@ -34,23 +34,12 @@ let GOBOT_QQ = ''; // 如果GOBOT_URL设置 /send_private_msg 则需要填入 us
 //(环境变量名 PUSH_KEY)
 let SCKEY = '';
 
-// =======================================PushDeer通知设置区域===========================================
-//此处填你申请的PushDeer KEY.
-//(环境变量名 DEER_KEY)
-let PUSHDEER_KEY = '';
-let PUSHDEER_URL = '';
-
-// =======================================Synology Chat通知设置区域===========================================
-//此处填你申请的CHAT_URL与CHAT_TOKEN
-//(环境变量名 CHAT_URL CHAT_TOKEN)
-let CHAT_URL = '';
-let CHAT_TOKEN = '';
-
 // =======================================Bark App通知设置区域===========================================
 //此处填你BarkAPP的信息(IP/设备码，例如：https://api.day.app/XXXXXXXX)
 let BARK_PUSH = '';
 //BARK app推送图标,自定义推送图标(需iOS15或以上)
-let BARK_ICON = 'https://qn.whyour.cn/logo.png';
+let BARK_ICON =
+  'https://img.gejiba.com/images/a3f551e09ac19add4c49ec16228729c5.png';
 //BARK app推送铃声,铃声列表去APP查看复制填写
 let BARK_SOUND = '';
 //BARK app推送消息的分组, 默认为"QingLong"
@@ -104,27 +93,6 @@ let IGOT_PUSH_KEY = '';
 let PUSH_PLUS_TOKEN = '';
 let PUSH_PLUS_USER = '';
 
-// =======================================Cool Push设置区域=======================================
-//官方文档：https://cp.xuthus.cc/docs
-//QQ_SKEY: Cool Push登录授权后推送消息的调用代码Skey
-//QQ_MODE: 推送模式详情请登录获取QQ_SKEY后见https://cp.xuthus.cc/feat
-let QQ_SKEY = '';
-let QQ_MODE = '';
-
-// =======================================智能微秘书设置区域=======================================
-//官方文档：http://wechat.aibotk.com/docs/about
-//AIBOTK_KEY： 填写智能微秘书个人中心的apikey
-//AIBOTK_TYPE：填写发送的目标 room 或 contact, 填其他的不生效
-//AIBOTK_NAME: 填写群名或用户昵称，和上面的type类型要对应
-let AIBOTK_KEY = '';
-let AIBOTK_TYPE = '';
-let AIBOTK_NAME = '';
-
-// =======================================飞书机器人设置区域=======================================
-//官方文档：https://www.feishu.cn/hc/zh-CN/articles/360024984973
-//FSKEY 飞书机器人的 FSKEY
-let FSKEY = '';
-
 //==========================云端环境变量的判断与接收=========================
 if (process.env.GOTIFY_URL) {
   GOTIFY_URL = process.env.GOTIFY_URL;
@@ -148,19 +116,6 @@ if (process.env.GOBOT_QQ) {
 
 if (process.env.PUSH_KEY) {
   SCKEY = process.env.PUSH_KEY;
-}
-
-if (process.env.DEER_KEY) {
-  PUSHDEER_KEY = process.env.DEER_KEY;
-  PUSHDEER_URL = process.env.DEER_URL;
-}
-
-if (process.env.CHAT_URL) {
-  CHAT_URL = process.env.CHAT_URL;
-}
-
-if (process.env.CHAT_TOKEN) {
-  CHAT_TOKEN = process.env.CHAT_TOKEN;
 }
 
 if (process.env.QQ_SKEY) {
@@ -236,20 +191,6 @@ if (process.env.PUSH_PLUS_TOKEN) {
 if (process.env.PUSH_PLUS_USER) {
   PUSH_PLUS_USER = process.env.PUSH_PLUS_USER;
 }
-
-if (process.env.AIBOTK_KEY) {
-  AIBOTK_KEY = process.env.AIBOTK_KEY;
-}
-if (process.env.AIBOTK_TYPE) {
-  AIBOTK_TYPE = process.env.AIBOTK_TYPE;
-}
-if (process.env.AIBOTK_NAME) {
-  AIBOTK_NAME = process.env.AIBOTK_NAME;
-}
-
-if (process.env.FSKEY) {
-  FSKEY = process.env.FSKEY;
-}
 //==========================云端环境变量的判断与接收=========================
 
 /**
@@ -264,7 +205,7 @@ async function sendNotify(
   text,
   desp,
   params = {},
-  author = '\n\n本通知 By：可萌の羊毛',
+  author = '\n\n本通知 By：https://github.com/whyour/qinglong',
 ) {
   //提供6种通知
   desp += author; //增加作者信息，防止被贩卖等
@@ -283,10 +224,6 @@ async function sendNotify(
     iGotNotify(text, desp, params), //iGot
     gobotNotify(text, desp), //go-cqhttp
     gotifyNotify(text, desp), //gotify
-    ChatNotify(text, desp), //synolog chat
-    PushDeerNotify(text, desp), //PushDeer
-    aibotkNotify(text, desp), //智能微秘书
-    fsBotNotify(text, desp), //飞书机器人
   ]);
 }
 
@@ -327,7 +264,7 @@ function gotifyNotify(text, desp) {
   });
 }
 
-function gobotNotify(text, desp) {
+function gobotNotify(text, desp, time = 2100) {
   return new Promise((resolve) => {
     if (GOBOT_URL) {
       const options = {
@@ -338,34 +275,38 @@ function gobotNotify(text, desp) {
         },
         timeout,
       };
-      $.post(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('发送go-cqhttp通知调用API失败！！\n');
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            if (data.retcode === 0) {
-              console.log('go-cqhttp发送通知消息成功🎉\n');
-            } else if (data.retcode === 100) {
-              console.log(`go-cqhttp发送通知消息异常: ${data.errmsg}\n`);
+      setTimeout(() => {
+        $.post(options, (err, resp, data) => {
+          try {
+            if (err) {
+              console.log('发送go-cqhttp通知调用API失败！！\n');
+              console.log(err);
             } else {
-              console.log(`go-cqhttp发送通知消息异常\n${JSON.stringify(data)}`);
+              data = JSON.parse(data);
+              if (data.retcode === 0) {
+                console.log('go-cqhttp发送通知消息成功🎉\n');
+              } else if (data.retcode === 100) {
+                console.log(`go-cqhttp发送通知消息异常: ${data.errmsg}\n`);
+              } else {
+                console.log(
+                  `go-cqhttp发送通知消息异常\n${JSON.stringify(data)}`,
+                );
+              }
             }
+          } catch (e) {
+            $.logErr(e, resp);
+          } finally {
+            resolve(data);
           }
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve(data);
-        }
-      });
+        });
+      }, time);
     } else {
       resolve();
     }
   });
 }
 
-function serverNotify(text, desp) {
+function serverNotify(text, desp, time = 2100) {
   return new Promise((resolve) => {
     if (SCKEY) {
       //微信server酱推送通知一个\n不会换行，需要两个\n才能换行，故做此替换
@@ -380,104 +321,106 @@ function serverNotify(text, desp) {
         },
         timeout,
       };
-      $.post(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('发送通知调用API失败！！\n');
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            //server酱和Server酱·Turbo版的返回json格式不太一样
-            if (data.errno === 0 || data.data.errno === 0) {
-              console.log('server酱发送通知消息成功🎉\n');
-            } else if (data.errno === 1024) {
-              // 一分钟内发送相同的内容会触发
-              console.log(`server酱发送通知消息异常: ${data.errmsg}\n`);
+      setTimeout(() => {
+        $.post(options, (err, resp, data) => {
+          try {
+            if (err) {
+              console.log('发送通知调用API失败！！\n');
+              console.log(err);
             } else {
-              console.log(`server酱发送通知消息异常\n${JSON.stringify(data)}`);
+              data = JSON.parse(data);
+              //server酱和Server酱·Turbo版的返回json格式不太一样
+              if (data.errno === 0 || data.data.errno === 0) {
+                console.log('server酱发送通知消息成功🎉\n');
+              } else if (data.errno === 1024) {
+                // 一分钟内发送相同的内容会触发
+                console.log(`server酱发送通知消息异常: ${data.errmsg}\n`);
+              } else {
+                console.log(
+                  `server酱发送通知消息异常\n${JSON.stringify(data)}`,
+                );
+              }
             }
+          } catch (e) {
+            $.logErr(e, resp);
+          } finally {
+            resolve(data);
           }
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve(data);
-        }
-      });
+        });
+      }, time);
     } else {
       resolve();
     }
   });
 }
 
-function PushDeerNotify(text, desp) {
+function CoolPush(text, desp) {
   return new Promise((resolve) => {
-    if (PUSHDEER_KEY) {
-      // PushDeer 建议对消息内容进行 urlencode
-      desp = encodeURI(desp);
-      const options = {
-        url: PUSHDEER_URL || `https://api2.pushdeer.com/message/push`,
-        body: `pushkey=${PUSHDEER_KEY}&text=${text}&desp=${desp}&type=markdown`,
+    if (QQ_SKEY) {
+      let options = {
+        url: `https://push.xuthus.cc/${QQ_MODE}/${QQ_SKEY}`,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
-        timeout,
       };
+
+      // 已知敏感词
+      text = text.replace(/京豆/g, '豆豆');
+      desp = desp.replace(/京豆/g, '');
+      desp = desp.replace(/🐶/g, '');
+      desp = desp.replace(/红包/g, 'H包');
+
+      switch (QQ_MODE) {
+        case 'email':
+          options.json = {
+            t: text,
+            c: desp,
+          };
+          break;
+        default:
+          options.body = `${text}\n\n${desp}`;
+      }
+
+      let pushMode = function (t) {
+        switch (t) {
+          case 'send':
+            return '个人';
+          case 'group':
+            return 'QQ群';
+          case 'wx':
+            return '微信';
+          case 'ww':
+            return '企业微信';
+          case 'email':
+            return '邮件';
+          default:
+            return '未知方式';
+        }
+      };
+
       $.post(options, (err, resp, data) => {
         try {
           if (err) {
-            console.log('发送通知调用API失败！！\n');
+            console.log(`发送${pushMode(QQ_MODE)}通知调用API失败！！\n`);
             console.log(err);
           } else {
             data = JSON.parse(data);
-            // 通过返回的result的长度来判断是否成功
-            if (
-              data.content.result.length !== undefined &&
-              data.content.result.length > 0
-            ) {
-              console.log('PushDeer发送通知消息成功🎉\n');
+            if (data.code === 200) {
+              console.log(`酷推发送${pushMode(QQ_MODE)}通知消息成功🎉\n`);
+            } else if (data.code === 400) {
+              console.log(
+                `QQ酷推(Cool Push)发送${pushMode(QQ_MODE)}推送失败：${
+                  data.msg
+                }\n`,
+              );
+            } else if (data.code === 503) {
+              console.log(`QQ酷推出错，${data.message}：${data.data}\n`);
             } else {
-              console.log(`PushDeer发送通知消息异常\n${JSON.stringify(data)}`);
+              console.log(`酷推推送异常: ${JSON.stringify(data)}`);
             }
           }
         } catch (e) {
           $.logErr(e, resp);
-        } finally {
-          resolve(data);
-        }
-      });
-    } else {
-      resolve();
-    }
-  });
-}
-
-function ChatNotify(text, desp) {
-  return new Promise((resolve) => {
-    if (CHAT_URL && CHAT_TOKEN) {
-      // 对消息内容进行 urlencode
-      desp = encodeURI(desp);
-      const options = {
-        url: `${CHAT_URL}${CHAT_TOKEN}`,
-        body: `payload={"text":"${text}\n${desp}"}`,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      };
-      $.post(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('发送通知调用API失败！！\n');
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            if (data.success) {
-              console.log('Chat发送通知消息成功🎉\n');
-            } else {
-              console.log(`Chat发送通知消息异常\n${JSON.stringify(data)}`);
-            }
-          }
-        } catch (e) {
-          $.logErr(e);
         } finally {
           resolve(data);
         }
@@ -532,13 +475,9 @@ function tgBotNotify(text, desp) {
     if (TG_BOT_TOKEN && TG_USER_ID) {
       const options = {
         url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
-        json: {
-          chat_id: `${TG_USER_ID}`,
-          text: `${text}\n\n${desp}`,
-          disable_web_page_preview: true,
-        },
+        body: `chat_id=${TG_USER_ID}&text=${text}\n\n${desp}&disable_web_page_preview=true`,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         timeout,
       };
@@ -590,7 +529,7 @@ function ddBotNotify(text, desp) {
       json: {
         msgtype: 'text',
         text: {
-          content: `${text}\n\n${desp}`,
+          content: ` ${text}\n\n${desp}`,
         },
       },
       headers: {
@@ -657,7 +596,7 @@ function qywxBotNotify(text, desp) {
       json: {
         msgtype: 'text',
         text: {
-          content: `${text}\n\n${desp}`,
+          content: ` ${text}\n\n${desp}`,
         },
       },
       headers: {
@@ -726,9 +665,9 @@ function qywxamNotify(text, desp) {
         timeout,
       };
       $.post(options_accesstoken, (err, resp, data) => {
-        let html = desp.replace(/\n/g, '<br/>');
-        let json = JSON.parse(data);
-        let accesstoken = json.access_token;
+        html = desp.replace(/\n/g, '<br/>');
+        var json = JSON.parse(data);
+        accesstoken = json.access_token;
         let options;
 
         switch (QYWX_AM_AY[4]) {
@@ -910,102 +849,6 @@ function pushPlusNotify(text, desp) {
                   PUSH_PLUS_USER ? '一对多' : '一对一'
                 }通知消息失败：${data.msg}\n`,
               );
-            }
-          }
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve(data);
-        }
-      });
-    } else {
-      resolve();
-    }
-  });
-}
-
-function aibotkNotify(text, desp) {
-  return new Promise((resolve) => {
-    if (AIBOTK_KEY && AIBOTK_TYPE && AIBOTK_NAME) {
-      let json = {};
-      let url = '';
-      switch (AIBOTK_TYPE) {
-        case 'room':
-          url = 'https://api-bot.aibotk.com/openapi/v1/chat/room';
-          json = {
-            apiKey: `${AIBOTK_KEY}`,
-            roomName: `${AIBOTK_NAME}`,
-            message: {
-              type: 1,
-              content: `【青龙快讯】\n\n${text}\n${desp}`,
-            },
-          };
-          break;
-        case 'contact':
-          url = 'https://api-bot.aibotk.com/openapi/v1/chat/contact';
-          json = {
-            apiKey: `${AIBOTK_KEY}`,
-            name: `${AIBOTK_NAME}`,
-            message: {
-              type: 1,
-              content: `【青龙快讯】\n\n${text}\n${desp}`,
-            },
-          };
-          break;
-      }
-      const options = {
-        url: url,
-        json,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout,
-      };
-      $.post(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('智能微秘书发送通知消息失败！！\n');
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            if (data.code === 0) {
-              console.log('智能微秘书发送通知消息成功🎉。\n');
-            } else {
-              console.log(`${data.error}\n`);
-            }
-          }
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve(data);
-        }
-      });
-    }
-  });
-}
-
-function fsBotNotify(text, desp) {
-  return new Promise((resolve) => {
-    if (FSKEY) {
-      const options = {
-        url: `https://open.feishu.cn/open-apis/bot/v2/hook/${FSKEY}`,
-        json: { msg_type: 'text', content: { text: `${text}\n\n${desp}` } },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout,
-      };
-      $.post(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('发送通知调用API失败！！\n');
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            if (data.StatusCode === 0) {
-              console.log('飞书发送通知消息成功🎉\n');
-            } else {
-              console.log(`${data.msg}\n`);
             }
           }
         } catch (e) {
