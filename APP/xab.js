@@ -1,5 +1,5 @@
 /*
-游戏下载：https://m.xiaicn.cn/invite/508902
+游戏下载：https://m.xiaicn.cn/invite/586858
 
 定时:0 7,8 * * *
 不会的复制我这个定时
