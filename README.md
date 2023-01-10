@@ -1,7 +1,7 @@
 青龙面板
 - 拉取仓库
   ```
-  ql repo https://github.com/a65101855/zyk.git "xcx|fruit|" "DEL|KF|PNG|README" "sendNotify|utils.js|dd_getToken|dd_cookie|mtCookie|bububaoCOOKIE"
+  ql repo https://github.com/a65101855/zyk.git "" "README" "sendNotify|utils.js|md5|dd_cookie|mtCookie"
 
 公告
 
