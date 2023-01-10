@@ -1,4 +1,7 @@
-拉库    ql repo https://github.com/a65101855/zyk.git "xcx|fruit|" "DEL|KF|PNG|README" "sendNotify|dd_getToken|dd_cookie|mtCookie|bububaoCOOKIE"
+青龙面板
+- 拉取仓库
+  ```
+  ql repo https://github.com/a65101855/zyk.git "xcx|fruit|" "DEL|KF|PNG|README" "sendNotify|dd_getToken|dd_cookie|mtCookie|bububaoCOOKIE"
 
 
 公告
