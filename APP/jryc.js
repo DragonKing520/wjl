@@ -1,6 +1,6 @@
 /*
  作者：ZFeng1005
- 日期：11-21
+ 日期：1-08
  APP：今日越城
  功能：完成任务，获得积分
  抓包：https://vapp.tmuyun.com/ 任意-请求头中 x-session-id 或使用 手机号#密码 两者互不影响
@@ -555,7 +555,9 @@
        "Cache-Control": `no-cache`,
        "X-TENANT-ID": 31,
        'Host': 'vapp.tmuyun.com',
+       'Connection': 'Keep-Alive',
        "Content-Type": `application/x-www-form-urlencoded`,
+       'User-Agent': `1.2.2;${requestid};iPad13,4;IOS;16.2;Appstore`
      },
    }
  }
@@ -573,6 +575,7 @@
        "Cache-Control": `no-cache`,
        "X-TENANT-ID": 31,
        'Host': 'vapp.tmuyun.com',
+       'Connection': 'Keep-Alive',
        "Content-Type": `application/x-www-form-urlencoded`,
        'User-Agent': `1.2.2;${requestid};iPad13,4;IOS;16.2;Appstore`
      },
